@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skribbl Share</title>
+    <style></style>
+</head>
+<body>
+    <div class="container">
+        <h1>Skribbl Share</h1>
+        <input type="text" id="word" placeholder="Enter a word or phrase to add">
+        <button id="addWord">Add Word</button>
+    </div>
+
+    <script>
+        async function addWord() {
+            const word = document.getElementById('word').value;
+            const response = await fetch('/api/add-word', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ word }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert('Word added!');
+            } else {
+                alert('Failed to add word');
+            }
+            word.value = '';
+        }
+
+        document.getElementById('addWord').addEventListener('click', addWord);
+    </script>
+</body>
+</html>
