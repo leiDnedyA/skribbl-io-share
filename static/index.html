@@ -1,189 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>skribbl.io bot</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎨 Silly Skribbl Bot 🤖</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #ff6b6b, #4ecdc4);
+      background-size: 600% 600%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
 
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+    body::before {
+      content: "🌈";
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      font-size: 2rem;
+    }
 
-        h1 {
-            color: #2d3748;
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 30px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+    body::after {
+      content: "⭐";
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 2rem;
+    }
 
-        #wordForm {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 100%;
-        }
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 40px;
+      padding: 50px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      max-width: 550px;
+      width: 100%;
+      border: 8px solid #ff6b6b;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .join-link {
-            display: inline-block;
-            background: linear-gradient(135deg, #2c5aa0 0%, #1e3a8a 100%);
-            color: white;
-            text-decoration: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(44, 90, 160, 0.3);
-        }
+    .container::before {
+      content: "🎨";
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      font-size: 4rem;
+    }
 
-        .join-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(44, 90, 160, 0.4);
-        }
+    .container::after {
+      content: "🤖";
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      font-size: 4rem;
+    }
 
-        input[type="text"] {
-            padding: 15px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
-            color: #2d3748;
-        }
+    h1 {
+      background: black;
+      color: white;
+      /* color: #ff6b6b; */
+      font-size: 3.2rem;
+      font-weight: bold;
+      margin-bottom: 35px;
+      /* text-shadow: 4px 4px 0px #4ecdc4, 8px 8px 0px #ff9ff3; */
+      transform: rotate(-6deg);
+    }
 
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-1px);
-        }
+    #wordForm {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      width: 100%;
+    }
 
-        input[type="text"]::placeholder {
-            color: #a0aec0;
-        }
+    .button-row {
+      display: grid;
+      grid-template-columns: 60% 40%;
+      gap: 15px;
+      justify-content: center;
+    }
 
-        button, input[type="submit"] {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: white;
-        }
+    .join-link {
+      display: inline-block;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #ff9ff3);
+      background-size: 200% 200%;
+      color: white;
+      text-decoration: none;
+      padding: 22px 40px;
+      border-radius: 60px;
+      font-weight: bold;
+      font-size: 1.3rem;
+      transition: all 0.4s ease;
+      box-shadow: 0 20px 30px rgba(255, 107, 107, 0.5);
+      border: 4px solid #fff;
+    }
 
-        #addWord {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
+    .join-link:hover {
+      transform: translateY(-8px) scale(1.15) rotate(5deg);
+      box-shadow: 0 25px 40px rgba(255, 107, 107, 0.8);
+    }
 
-        #addWord:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
-        }
+    .suggested-words {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
 
-        #startButton {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
-        }
+    .suggested-word-btn {
+      padding: 12px 20px;
+      border: 3px solid #ff9ff3;
+      border-radius: 20px;
+      background: linear-gradient(45deg, #ff9ff3, #feca57);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Comic Sans MS', cursive;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 15px rgba(255, 159, 243, 0.4);
+    }
 
-        #startButton:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(245, 87, 108, 0.4);
-        }
+    .suggested-word-btn:hover {
+      transform: translateY(-3px) scale(1.05) rotate(2deg);
+      box-shadow: 0 12px 20px rgba(255, 159, 243, 0.6);
+      border-color: #ff6b6b;
+    }
 
-        button:active, input[type="submit"]:active {
-            transform: translateY(0);
-        }
+    .suggested-word-btn:active {
+      transform: translateY(0) scale(0.95);
+    }
 
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px 20px;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .join-link, button, input[type="submit"] {
-                padding: 12px 24px;
-                font-size: 0.95rem;
-            }
-        }
-    </style>
+    input[type="text"] {
+      padding: 22px 30px;
+      border: 5px solid #4ecdc4;
+      border-radius: 25px;
+      font-size: 1.2rem;
+      transition: all 0.4s ease;
+      background: white;
+      color: #333;
+      font-family: 'Comic Sans MS', cursive;
+      box-shadow: 0 10px 20px rgba(78, 205, 196, 0.3);
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #ff6b6b;
+      box-shadow: 0 0 0 8px rgba(255, 107, 107, 0.3);
+      transform: translateY(-5px) scale(1.05);
+    }
+
+    input[type="text"]::placeholder {
+      color: #ff9ff3;
+      font-style: italic;
+    }
+
+    button,
+    input[type="submit"] {
+      padding: 22px 40px;
+      border: none;
+      border-radius: 25px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      color: white;
+      font-family: 'Comic Sans MS', cursive;
+      border: 4px solid #fff;
+      position: relative;
+      overflow: hidden;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    button::before,
+    input[type="submit"]::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover::before,
+    input[type="submit"]:hover::before {
+      left: 100%;
+    }
+
+    #addWord {
+      background: linear-gradient(45deg, #008077, #45b7d1, #96ceb4);
+      background-size: 200% 200%;
+      box-shadow: 0 20px 30px rgba(78, 205, 196, 0.5);
+    }
+
+    #addWord:hover {
+      transform: translateY(-8px) rotate(3deg) scale(1.05);
+      box-shadow: 0 25px 40px rgba(78, 205, 196, 0.8);
+    }
+
+    #chatgptButton {
+      background: linear-gradient(45deg, #10a37f, #1a7f64, #0d8a6f);
+      background-size: 200% 200%;
+      box-shadow: 0 20px 30px rgba(16, 163, 127, 0.5);
+    }
+
+    #chatgptButton:hover {
+      transform: translateY(-8px) rotate(-3deg) scale(1.05);
+      box-shadow: 0 25px 40px rgba(16, 163, 127, 0.8);
+    }
+
+    #startButton {
+      background: linear-gradient(45deg, #57f8fe, #700061, #ff6b6b);
+      box-shadow: 0 15px 25px rgba(255, 159, 243, 0.4);
+    }
+
+    #startButton:hover {
+      transform: translateY(-5px) rotate(-2deg);
+      box-shadow: 0 20px 35px rgba(255, 159, 243, 0.6);
+    }
+
+    button:active,
+    input[type="submit"]:active {
+      transform: translateY(0) scale(0.95);
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 2.2rem;
+      }
+
+      .join-link,
+      button,
+      input[type="submit"] {
+        padding: 15px 28px;
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>skribbl.io bot</h1>
-        <form id="wordForm">
-          <a href="%game_url%" class="join-link" target="_blank">Join the Game!</a>
-          <input type="text" id="word" placeholder="sweaty dog, sammy, abby, crystal, ayden, poop, ...">
-          <input type="submit" id="addWord" value="Add Word">
-          <button id="startButton">Start Game</button>
-        </form>
-    </div>
+  <div class="container">
+    <h1>🎨 Skribbl Bot 🤖</h1>
+    <form id="wordForm">
+      <a href="%game_url%" class="join-link" target="_blank">🎮 Join the Game! 🎮</a>
+      <input type="text" id="word"
+        placeholder="🦄 sammy, 🐱 olivia rodriguez, 🌮 crystal, 🎪 ayden, 🚀 rocket, 💩 poop...">
+      <div class="button-row">
+        <input type="submit" id="addWord" value="✨ Add Word(s) ✨">
+        <button id="chatgptButton">ChatGPT</button>
+      </div>
+      <button id="startButton">🎯 Start the Game! 🎯</button>
+    </form>
+  </div>
 
-    <script>
-        async function addWord(e) {
-            e?.preventDefault();
-            const wordInput = document.getElementById('word');
-            const word = wordInput.value;
-            const response = await fetch('/api/add-word', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ word }),
-            });
-            const data = await response.json();
-            alert(data.message);
-            wordInput.value = '';
+  <script>
+    async function addWord(e) {
+      e?.preventDefault();
+      const wordInput = document.getElementById('word');
+      const word = wordInput.value;
+
+      // Add silly loading animation
+      const addButton = document.getElementById('addWord');
+      const originalText = addButton.value;
+      addButton.value = '🎨 Adding... 🎨';
+      addButton.style.animation = 'pulse 0.5s infinite';
+
+      console.log(word)
+
+      const response = await fetch('/api/add-word', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ word }),
+      });
+      const data = await response.json();
+
+      // Reset button
+      addButton.value = originalText;
+      addButton.style.animation = '';
+
+      // Silly alert with emoji
+      alert(`🎉 ${data.message} 🎉`);
+      wordInput.value = '';
+    }
+
+    async function startGame(e) {
+      e?.preventDefault();
+
+      // Add silly loading animation
+      const startButton = document.getElementById('startButton');
+      const originalText = startButton.textContent;
+      startButton.textContent = '🎯 Starting... 🎯';
+      startButton.style.animation = 'pulse 0.5s infinite';
+
+      const response = await fetch('/api/start-game', {
+        method: 'POST'
+      });
+      const data = await response.json();
+
+      // Reset button
+      startButton.textContent = originalText;
+      startButton.style.animation = '';
+
+      if (response.ok) {
+        alert(`🎊 ${data.message} 🎊`);
+      } else {
+        alert(data.message);
+      }
+    }
+
+    document.getElementById('wordForm').addEventListener('submit', addWord);
+    document.getElementById('startButton').addEventListener('click', startGame);
+
+    // Add event listeners for suggested word buttons
+    document.querySelectorAll('.suggested-word-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        const word = this.getAttribute('data-word');
+        document.getElementById('word').value = word;
+
+        // Add a fun visual feedback
+        this.style.transform = 'scale(0.9) rotate(-5deg)';
+        setTimeout(() => {
+          this.style.transform = '';
+        }, 200);
+      });
+    });
+
+    async function chatgptWords(e) {
+      e?.preventDefault();
+      let count;
+      while (true) {
+        count = parseInt(prompt('How many words do you want to generate?'));
+        if (!count && count !== 0) {
+          return;
+        } else if (isNaN(count)) {
+          alert('Enter a number');
+        } else if (count <= 0) {
+          alert('Enter a number greater than 0');
+        } else if (count > 10) {
+          alert('Too many words.');
+        } else {
+          break;
         }
+      }
+      const response = await fetch(`/api/chatgpt-words?count=${count}`, {
+        method: 'GET'
+      });
+      if (!response.ok) {
+        alert(data.message);
+        return;
+      }
+      const data = await response.json();
+      document.getElementById('word').value = data.words;
+    }
 
-        async function startGame(e) {
-          e?.preventDefault();
-          const response = await fetch('/api/start-game', {
-            method: 'POST'
-          });
-          const data = await response.json();
-          if (response.ok) {
-            alert(data.message);
-          } else {
-            alert(data.message);
-          }
-        }
-
-        document.getElementById('wordForm').addEventListener('submit', addWord);
-        document.getElementById('startButton').addEventListener('click', startGame);
-    </script>
+    document.getElementById('chatgptButton').addEventListener('click', chatgptWords);
+  </script>
 </body>
+
 </html>

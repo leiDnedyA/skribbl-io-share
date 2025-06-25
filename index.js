@@ -1,9 +1,17 @@
 import express from 'express';
 import puppeteer from 'puppeteer';
+import OpenAI from 'openai';
 import fs from 'fs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 async function initBrowser() {
   const browser = await puppeteer.launch({
@@ -83,6 +91,17 @@ app.get('/', async (req, res) => {
     });
   })
   res.send(rawHtml.replace('%game_url%', gameUrl));
+})
+
+app.get('/api/chatgpt-words', async (req, res) => {
+  const count = req.query?.count || 3;
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: "Generate " + count + " words for a game of pictionary. Make them funny but simple enough for a kid to draw and guess. Do not include any words in this list. Respond only with a comma separated list of words. The current list of words is: " + currWords.join(', ') }],
+  });
+  const words = response.choices[0].message.content.split(',').map(w => w.trim());
+  console.log(`Chatgpt generated ${words.length} words.`);
+  res.json({ words: words.join(', ') });
 })
 
 app.post('/api/add-word', async (req, res) => {
