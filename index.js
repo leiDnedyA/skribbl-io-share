@@ -71,6 +71,9 @@ app.use(express.urlencoded({ extended: true }));
 // app.use(express.static(path.join(import.meta.dirname, 'static')));
 
 app.get('/', async (req, res) => {
+  if (!gameUrl) {
+    return res.status(500).send("<h1>Game not started. Try again in 10 seconds.</h1>");
+  }
   const rawHtml = await new Promise((res, rej) => {
     fs.readFile('./static/index.html', 'utf8', (err, data) => {
       if (err) {
