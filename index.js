@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 async function initBrowser() {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   return browser;
@@ -63,6 +63,7 @@ async function cleanUp() {
 let browser = null;
 let gamePage = null;
 let gameUrl = null;
+let currWords = [];
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -87,16 +88,23 @@ app.post('/api/add-word', async (req, res) => {
     return res.status(500).json({ message: 'Bot has not started game yet.' });
   }
   const word = req.body.word;
-  const currentWordText = await gamePage.evaluate(() => {
-    return document.querySelector('#item-settings-customwords').value;
-  });
-  if (currentWordText) {
-    await gamePage.type('#item-settings-customwords', `, ${word}`);
-  } else {
-    await gamePage.type('#item-settings-customwords', word);
+  const wordsToAdd = word.split(',').map(w => w.trim()).filter(w => w.length > 0);
+  if (wordsToAdd.length === 0) {
+    return res.status(400).json({ message: 'No words to add.' });
   }
-  console.log('Word added.');
-  res.json({ message: 'Word added!' });
+
+  const newWords = wordsToAdd.filter(word => !currWords.includes(word));
+
+  if (newWords.length === 0) {
+    return res.status(400).json({ message: 'Word(s) already exists.' });
+  }
+
+  currWords = [...currWords, ...newWords];
+
+  await gamePage.type('#item-settings-customwords', `, ${currWords.join(', ')}`);
+
+  console.log(`Added ${newWords.length} words. Total words: ${currWords.length}`);
+  res.json({ message: `Added ${newWords.length} words. Total words: ${currWords.length}` });
 });
 
 app.post('/api/start-game', async (req, res) => {
@@ -105,13 +113,18 @@ app.post('/api/start-game', async (req, res) => {
     return res.status(500).json({ message: 'No game loaded, unable to start.' });
   }
 
+  if (currWords.length < 10) {
+    return res.status(400).json({ message: `Not enough words to start game. ${10 - currWords.length} more words are needed.` });
+  }
+
   await gamePage.click('#button-start-game');
   await new Promise((res) => { setTimeout(() => { res() }, 200) });
 
   await gamePage.close();
   console.log('Game started.')
   res.status(200).json({ message: "Game started." });
-  process.exit('SIGTERM');
+  await cleanUp();
+  process.exit(0);
 });
 
 app.use((err, req, res, next) => {
@@ -128,9 +141,7 @@ app.listen(PORT, async () => {
   const gameData = await createGame(browser);
   gamePage = gameData?.gamePage;
   gameUrl = gameData?.gameUrl;
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Test endpoint available at: http://localhost:${PORT}/api/test`);
-  console.log(`Static files served from: http://localhost:${PORT}/`);
+  console.log('Bot URL: ' + `http://localhost:${PORT}`);
 });
 
 

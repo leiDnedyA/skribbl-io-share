@@ -3,22 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skribbl Share</title>
+    <title>skribbl.io bot</title>
     <style>
-#wordForm {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: fit-content;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #wordForm {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .join-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #2c5aa0 0%, #1e3a8a 100%);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(44, 90, 160, 0.3);
+        }
+
+        .join-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(44, 90, 160, 0.4);
+        }
+
+        input[type="text"] {
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            color: #2d3748;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        input[type="text"]::placeholder {
+            color: #a0aec0;
+        }
+
+        button, input[type="submit"] {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        #addWord {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        #addWord:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        #startButton {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+        }
+
+        #startButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(245, 87, 108, 0.4);
+        }
+
+        button:active, input[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .join-link, button, input[type="submit"] {
+                padding: 12px 24px;
+                font-size: 0.95rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Skribbl Share</h1>
+        <h1>skribbl.io bot</h1>
         <form id="wordForm">
-          <a href="%game_url%">Join the Game!</a>
-          <input type="text" id="word" placeholder="Enter a word or phrase to add">
+          <a href="%game_url%" class="join-link" target="_blank">Join the Game!</a>
+          <input type="text" id="word" placeholder="sweaty dog, sammy, abby, crystal, ayden, poop, ...">
           <input type="submit" id="addWord" value="Add Word">
           <button id="startButton">Start Game</button>
         </form>
@@ -41,12 +169,17 @@
             wordInput.value = '';
         }
 
-        async function startGame() {
+        async function startGame(e) {
+          e?.preventDefault();
           const response = await fetch('/api/start-game', {
             method: 'POST'
           });
           const data = await response.json();
-          alert(data?.message ? data.message : 'Failed to start game.');
+          if (response.ok) {
+            alert(data.message);
+          } else {
+            alert(data.message);
+          }
         }
 
         document.getElementById('wordForm').addEventListener('submit', addWord);

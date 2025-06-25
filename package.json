@@ -4,7 +4,7 @@
   "description": "Express.js boilerplate with test endpoint and static file serving",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --no-warnings index.js",
     "dev": "nodemon index.js"
   },
   "dependencies": {
@@ -14,7 +14,12 @@
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["express", "nodejs", "api", "boilerplate"],
+  "keywords": [
+    "express",
+    "nodejs",
+    "api",
+    "boilerplate"
+  ],
   "author": "",
   "license": "MIT"
 }
