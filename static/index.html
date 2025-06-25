@@ -4,18 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skribbl Share</title>
-    <style></style>
+    <style>
+#wordForm {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: fit-content;
+}
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Skribbl Share</h1>
-        <input type="text" id="word" placeholder="Enter a word or phrase to add">
-        <button id="addWord">Add Word</button>
+        <form id="wordForm">
+          <a href="%game_url%">Join the Game!</a>
+          <input type="text" id="word" placeholder="Enter a word or phrase to add">
+          <input type="submit" id="addWord" value="Add Word">
+          <button id="startButton">Start Game</button>
+        </form>
     </div>
 
     <script>
-        async function addWord() {
-            const word = document.getElementById('word').value;
+        async function addWord(e) {
+            e?.preventDefault();
+            const wordInput = document.getElementById('word');
+            const word = wordInput.value;
             const response = await fetch('/api/add-word', {
                 method: 'POST',
                 headers: {
@@ -24,15 +37,20 @@
                 body: JSON.stringify({ word }),
             });
             const data = await response.json();
-            if (response.ok) {
-                alert('Word added!');
-            } else {
-                alert('Failed to add word');
-            }
-            word.value = '';
+            alert(data.message);
+            wordInput.value = '';
         }
 
-        document.getElementById('addWord').addEventListener('click', addWord);
+        async function startGame() {
+          const response = await fetch('/api/start-game', {
+            method: 'POST'
+          });
+          const data = await response.json();
+          alert(data?.message ? data.message : 'Failed to start game.');
+        }
+
+        document.getElementById('wordForm').addEventListener('submit', addWord);
+        document.getElementById('startButton').addEventListener('click', startGame);
     </script>
 </body>
 </html>
