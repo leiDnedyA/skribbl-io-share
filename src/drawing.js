@@ -398,12 +398,36 @@ export async function drawImage(gamePage, imgSrc) {
           }
         );
 
-        gameCanvas.dispatchEvent(mouseEvent);
+
+            /*
+             *
+                        n = function (t, e) {
+                            return new PointerEvent(t, { pointerId: 1, pointerType: "mouse", bubbles: !0, clientX: e.x, clientY: e.y, button: 0 });
+                        };
+                            t.dispatchEvent(n("pointerdown", a));
+                            for (let a = 1; a < r.length; a++) {
+                                let o = e(r[a]);
+                                t.dispatchEvent(n("pointermove", o));
+                            }
+                            let o = e(r[r.length - 1]);
+                            t.dispatchEvent(n("pointerup", o));
+             * */
+
+        gameCanvas.dispatchEvent(new PointerEvent(name, {
+           pointerId: 1,
+          pointerType: "mouse",
+          bubbles: !0,
+          // clientX: e.x,
+          // clientY: e.y,
+            clientX: rect.x + x * ratio,
+            clientY: rect.y + y * ratio,
+          button: 0 
+        }));
       };
 
       let generateDots = function(img, brushDiameter) {
         // Scale the image to fit the game canvas
-        let imageData = imageHelper.scaleImage(img, { width: gameCanvas.width / 10, height: gameCanvas.height / 10, scaleMode: 'scaleToFit' });
+        let imageData = imageHelper.scaleImage(img, { width: gameCanvas.width, height: gameCanvas.height, scaleMode: 'scaleToFit' });
 
         // This offset is used to center the image on the canvas
         // 'Scaling an image to fit on canvas' - https://stackoverflow.com/a/23105310
@@ -465,8 +489,19 @@ export async function drawImage(gamePage, imgSrc) {
             toolbar.setBrushNum(brushNum);
             toolbar.setColor(dot.color);
 
-            dispatchGameCanvasMouseEvent("mousedown", dot.x, dot.y);
-            dispatchGameCanvasMouseEvent("mouseup", dot.x, dot.y);
+                            // let a = e(r[0]);
+                            // t.dispatchEvent(n("pointerdown", a));
+                            // for (let a = 1; a < r.length; a++) {
+                            //     let o = e(r[a]);
+                            //     t.dispatchEvent(n("pointermove", o));
+                            // }
+                            // let o = e(r[r.length - 1]);
+                            // t.dispatchEvent(n("pointerup", o));
+
+            dispatchGameCanvasMouseEvent("pointerdown", dot.x, dot.y);
+            dispatchGameCanvasMouseEvent("pointermove", dot.x, dot.y);
+            dispatchGameCanvasMouseEvent("pointerup", dot.x, dot.y);
+
           });
         });
 
@@ -627,7 +662,7 @@ export async function drawImage(gamePage, imgSrc) {
 
         commandsProcessor.setCommands(drawCommands);
 
-        commandsProcessor.process(10, () => {
+        commandsProcessor.process(6, () => {
           return toolbar.isActive;
         });
 

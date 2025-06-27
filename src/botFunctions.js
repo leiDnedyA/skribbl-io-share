@@ -17,7 +17,7 @@ export async function createGame(browser) {
   const client = await page.target().createCDPSession();
   await client.send('Network.enable');
   const gameIdPromise = new Promise((res, rej) => {
-    const TIMEOUT_SEC = 10;
+    const TIMEOUT_SEC = 30;
     setTimeout(() => { rej(`Timed out after ${TIMEOUT_SEC} seconds trying to find game ID.`) }, TIMEOUT_SEC * 1000);
     client.on('Network.webSocketFrameReceived', ({ response }) => {
       const payloadString = response.payloadData;
