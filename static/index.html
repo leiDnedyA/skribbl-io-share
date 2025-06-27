@@ -220,7 +220,7 @@
     // Function to fetch game URL
     async function fetchGameUrl() {
       try {
-        const response = await fetch('/api/game-url');
+        const response = await fetch('/api/game/url');
         if (response.ok) {
           const data = await response.json();
           gameUrl = data.gameUrl;
@@ -262,7 +262,7 @@
       addButton.value = 'Adding...';
       addButton.style.animation = 'pulse 0.5s infinite';
 
-      const response = await fetch('/api/add-word', {
+      const response = await fetch('/api/game/add-word', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -299,7 +299,7 @@
       startButton.textContent = 'Starting...';
       startButton.style.animation = 'pulse 0.5s infinite';
 
-      const response = await fetch('/api/start-game', {
+      const response = await fetch('/api/game/start-game', {
         method: 'POST'
       });
       const data = await response.json();
