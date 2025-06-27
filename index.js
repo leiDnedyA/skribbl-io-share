@@ -79,9 +79,6 @@ app.use(express.urlencoded({ extended: true }));
 // app.use(express.static(path.join(import.meta.dirname, 'static')));
 
 app.get('/', async (req, res) => {
-  if (!gameUrl) {
-    return res.status(500).send("<h1>Game not started. Try again in 10 seconds.</h1>");
-  }
   const rawHtml = await new Promise((res, rej) => {
     fs.readFile('./static/index.html', 'utf8', (err, data) => {
       if (err) {
@@ -90,14 +87,14 @@ app.get('/', async (req, res) => {
       res(data);
     });
   })
-  res.send(rawHtml.replace('%game_url%', gameUrl));
+  res.send(rawHtml);
 })
 
 app.get('/api/chatgpt-words', async (req, res) => {
   const count = req.query?.count || 3;
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
-    messages: [{ role: "user", content: "Generate " + count + " words for a game of pictionary. Make them funny but simple enough for a kid to draw and guess. Do not include any words in this list. Respond only with a comma separated list of words. The current list of words is: " + currWords.join(', ') }],
+    messages: [{ role: "user", content: "Generate " + count + " words for a game of pictionary. Make them funny but simple enough for a kid to draw and guess. Include logos for apps and restaurants. Do not include any words in this list. Respond only with a comma separated list of words. The current list of words is: " + currWords.join(', ') }],
   });
   const words = response.choices[0].message.content.split(',').map(w => w.trim());
   console.log(`Chatgpt generated ${words.length} words.`);
@@ -129,6 +126,13 @@ app.post('/api/add-word', async (req, res) => {
   res.json({ message: `Added ${newWords.length} words. Total words: ${currWords.length}` });
 });
 
+app.get('/api/game-url', async (req, res) => {
+  if (!gameUrl) {
+    return res.status(500).json({ message: 'Game not started. Try again in 10 seconds.' });
+  }
+  res.json({ gameUrl });
+});
+
 app.post('/api/start-game', async (req, res) => {
   console.log('Starting game.')
   if (!gamePage) {
@@ -137,6 +141,13 @@ app.post('/api/start-game', async (req, res) => {
 
   if (currWords.length < 10) {
     return res.status(400).json({ message: `Not enough words to start game. ${10 - currWords.length} more words are needed.` });
+  }
+
+  // Always add "robot" as a word
+  if (!currWords.includes('robot')) {
+    currWords.push('robot');
+    await gamePage.type('#item-settings-customwords', `, robot`);
+    console.log('Added "robot" as a word.');
   }
 
   await gamePage.click('#button-start-game');
