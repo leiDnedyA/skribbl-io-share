@@ -139,7 +139,9 @@ export async function drawImage(gamePage, imgSrc) {
       // All of these toolbar elements are provided by Skribbl.io, if we want to use them, we need to click on the appropriate element.
       // The toolbar only appears if it's the player's turn to draw.
       setColor(color) {
-        this._colorElementsLookup[color.JSONString].click();
+        debugger;
+        const btn = this._colorElementsLookup[color.JSONString];
+        btn.dispatchEvent(new PointerEvent("pointerdown"));
       }
 
       useTool(toolName) {
@@ -495,12 +497,9 @@ export async function drawImage(gamePage, imgSrc) {
           lineColor = toolbar.getNearestAvailableColor(lineColor);
 
           for (let x = 1; x < imageData.width; x++) {
-            console.log('b4');
             currColor = imageHelper.getPixelColor(imageData, x, y);
             currColor = toolbar.getNearestAvailableColor(currColor);
-            console.log('aftr');
 
-            console.log({ currColor, lineColor }, 0)
             if (!currColor.isEqual(lineColor)) {
               if (!lineColor.isEqual(transparentColor) && !lineColor.isEqual(gameBackgroundColor)) {
                 let lineStartX = (startX * brushDiameter) + xOffset;
