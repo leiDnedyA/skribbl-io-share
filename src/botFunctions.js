@@ -1,9 +1,10 @@
 import puppeteer from 'puppeteer';
 import { setGameStarted } from './gameState.js';
+import { drawImage } from './drawing.js';
 
 export async function initBrowser() {
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   return browser;
@@ -54,4 +55,44 @@ export async function startGame(gamePage) {
   await gamePage.click('#button-start-game');
   await new Promise((res) => { setTimeout(() => { res() }, 200) });
   setGameStarted(true);
+}
+
+export async function playGame(gamePage) {
+  await waitForTurn(gamePage);
+  console.log('Turn started.');
+  const wordButtonSelector = "#game-canvas > div.overlay-content > div.words.show > div:nth-child(1)";
+  await gamePage.waitForSelector(wordButtonSelector);
+  const word = await gamePage.evaluate(async (selector) => {
+    const element = document.querySelector(selector);
+    return element.innerText;
+  }, wordButtonSelector);
+  console.log({ word })
+  await new Promise((res) => { setTimeout(() => { res() }, 200) });
+  await gamePage.click(wordButtonSelector);
+  await new Promise((res) => { setTimeout(() => { res() }, 500) });
+  await drawImage(gamePage, "https://i.imgur.com/99TClvD.png");
+}
+
+export async function waitForTurn(gamePage) {
+  await gamePage.evaluate(async () => {
+
+    const check = () => {
+      const text = document
+        ?.querySelector("#game-canvas > div.overlay-content")
+        ?.firstChild
+        ?.innerText
+        ?.toLowerCase()
+        ?.trim();
+      return text?.includes("choose a word");
+    }
+
+    return new Promise((res) => {
+      const interval = setInterval(() => {
+        if (check()) {
+          clearInterval(interval);
+          res();
+        }
+      }, 200);
+    })
+  });
 }

@@ -1,7 +1,7 @@
 import express from 'express';
 import { getCurrWords, setCurrWords, getGameUrl } from '../src/gameState.js';
 import { getGamePage } from '../src/browserState.js';
-import { startGame } from '../src/botFunctions.js';
+import { playGame, startGame } from '../src/botFunctions.js';
 
 const router = express.Router();
 
@@ -57,6 +57,7 @@ router.post('/start-game', async (req, res) => {
     }
 
     await startGame(gamePage);
+    playGame(gamePage); // start this in the background
 
     console.log('Game started.')
     res.status(200).json({ message: "Game started." });
