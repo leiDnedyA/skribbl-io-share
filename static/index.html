@@ -140,6 +140,27 @@
       color: var(--primary);
       border: 1px solid var(--primary);
     }
+
+    #chatgptButton:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 0;
+        align-items: stretch;
+      }
+      
+      .container {
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 100vh;
+        max-width: none;
+        justify-content: flex-start;
+        padding: 20px;
+      }
+    }
   </style>
 </head>
 
@@ -150,7 +171,7 @@
       <div class="input-section">
         <h3 style="color: #2563eb; margin-bottom: 12px;" id="word-count-heading">Your Words (0)</h3>
         <div id="wordList">
-          <p style="color: #666; font-style: italic;">No words added yet!</p>
+          <p style="color: #666; font-style: italic; margin: 0;">No words added yet!</p>
         </div>
       </div>
       <div class="input-section">
@@ -190,7 +211,7 @@
       const wordCount = localWords.length;
       document.getElementById('word-count-heading').textContent = `Your Words (${wordCount})`;
       if (localWords.length === 0) {
-        wordList.innerHTML = '<p style="color:#6b7280;font-style:italic;">No words added yet.</p>';
+        wordList.innerHTML = '<p style="color:#6b7280;font-style:italic;margin:0;">No words added yet.</p>';
         return;
       }
       wordList.innerHTML = localWords.map(word => `<span class="tag">${word}</span>`).join('');
@@ -226,10 +247,9 @@
       }
     }
 
-    // Start polling for game URL
     function startUrlPolling() {
-      fetchGameUrl(); // Initial fetch
-      urlPollingInterval = setInterval(fetchGameUrl, 2000); // Poll every 2 seconds
+      fetchGameUrl();
+      urlPollingInterval = setInterval(fetchGameUrl, 2000);
     }
 
     async function addWord(e) {
@@ -237,13 +257,10 @@
       const wordInput = document.getElementById('word');
       const word = wordInput.value;
 
-      // Add silly loading animation
       const addButton = document.getElementById('addWord');
       const originalText = addButton.value;
       addButton.value = 'Adding...';
       addButton.style.animation = 'pulse 0.5s infinite';
-
-      console.log(word)
 
       const response = await fetch('/api/add-word', {
         method: 'POST',
@@ -254,12 +271,10 @@
       });
       const data = await response.json();
 
-      // Reset button
       addButton.value = originalText;
       addButton.style.animation = '';
 
       if (response.ok) {
-        // Add words to local tracking
         const wordsToAdd = word.split(',').map(w => w.trim()).filter(w => w.length > 0);
         wordsToAdd.forEach(w => {
           if (!localWords.includes(w)) {
@@ -268,7 +283,6 @@
         });
         updateWordList();
         
-        // Silly alert with emoji
         alert(`${data.message}`);
         wordInput.value = '';
       } else {
@@ -318,35 +332,24 @@
       });
     });
 
-    async function chatgptWords(e) {
+    const chatgptButton = document.getElementById('chatgptButton');
+    async function chatgptButtonClick(e) {
       e?.preventDefault();
-      let count;
-      while (true) {
-        count = parseInt(prompt('How many words do you want to generate?'));
-        if (!count && count !== 0) {
-          return;
-        } else if (isNaN(count)) {
-          alert('Enter a number');
-        } else if (count <= 0) {
-          alert('Enter a number greater than 0');
-        } else if (count > 10) {
-          alert('Enter a number less than 10');
-        } else {
-          break;
-        }
-      }
-      const response = await fetch(`/api/chatgpt-words?count=${count}`, {
+      chatgptButton.disabled = true;
+      const response = await fetch(`/api/chatgpt-words`, {
         method: 'GET'
       });
       if (!response.ok) {
         alert(data.message);
+        chatgptButton.disabled = false;
         return;
       }
+      chatgptButton.disabled = false;
       const data = await response.json();
       document.getElementById('word').value = data.words;
     }
 
-    document.getElementById('chatgptButton').addEventListener('click', chatgptWords);
+    chatgptButton.addEventListener('click', chatgptButtonClick);
 
     // Initialize the page
     updateWordList();

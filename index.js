@@ -2,6 +2,7 @@ import express from 'express';
 import puppeteer from 'puppeteer';
 import OpenAI from 'openai';
 import fs from 'fs';
+import path from 'path';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -76,25 +77,14 @@ let currWords = [];
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.use(express.static(path.join(import.meta.dirname, 'static')));
-
-app.get('/', async (req, res) => {
-  const rawHtml = await new Promise((res, rej) => {
-    fs.readFile('./static/index.html', 'utf8', (err, data) => {
-      if (err) {
-        rej(err)
-      }
-      res(data);
-    });
-  })
-  res.send(rawHtml);
-})
+app.use(express.static(path.join(import.meta.dirname, 'static')));
 
 app.get('/api/chatgpt-words', async (req, res) => {
-  const count = req.query?.count || 3;
+  const count = 3;
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
-    messages: [{ role: "user", content: "Generate " + count + " words for a game of pictionary. Make them funny but simple enough for a kid to draw and guess. Include logos for apps and restaurants. Do not include any words in this list. Respond only with a comma separated list of words. The current list of words is: " + currWords.join(', ') }],
+    messages: [{ role: "user", content: "Generate " + count + " words for a game of pictionary. Make them interesting but simple enough for a kid to draw and guess. Include animals performing actions (e.g monkey riding a bike), popular food brands like McDonalds or Starbucks, and other things that are easy to draw. Do not include any words in this current list. Respond only with a comma separated list of words. The current list of words is: " + currWords.join(', ') }],
+    temperature: 2,
   });
   const words = response.choices[0].message.content.split(',').map(w => w.trim());
   console.log(`Chatgpt generated ${words.length} words.`);
