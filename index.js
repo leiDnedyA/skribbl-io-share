@@ -1,81 +1,31 @@
 import express from 'express';
-import puppeteer from 'puppeteer';
 import path from 'path';
 import chatgptWordsRouter from './routes/chatgpt-words.js';
-import { getCurrWords, setCurrWords } from './src/gameState.js';
+import { getCurrWords, setCurrWords, getGameUrl, setGameUrl } from './src/gameState.js';
+import { createGame, initBrowser } from './src/botFunctions.js';
+import { getBrowser, getGamePage, setBrowser, setGamePage } from './src/browserState.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-async function initBrowser() {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  return browser;
-}
 
 const apiRouter = express.Router();
 
 apiRouter.use('/chatgpt-words', chatgptWordsRouter);
 
-async function createGame(browser) {
-  const page = await browser.newPage();
-
-  // websocket scraping based on https://stackoverflow.com/questions/48375700/how-to-use-puppeteer-to-dump-websocket-data
-  const client = await page.target().createCDPSession();
-  await client.send('Network.enable');
-  const gameIdPromise = new Promise((res, rej) => {
-    const TIMEOUT_SEC = 10;
-    setTimeout(() => { rej(`Timed out after ${TIMEOUT_SEC} seconds trying to find game ID.`) }, TIMEOUT_SEC * 1000);
-    client.on('Network.webSocketFrameReceived', ({ response }) => {
-      const payloadString = response.payloadData;
-      const dataStart = payloadString.indexOf('[');
-      if (dataStart) {
-        try {
-          const payloadData = JSON.parse(payloadString.slice(dataStart, payloadString.length));
-          const gameId = payloadData?.[1]?.data?.id;
-          if (gameId) {
-            res(gameId);
-          }
-        } catch (e) { }
-      }
-    });
-  });
-
-  await page.goto('https://skribbl.io/');
-  await page.waitForSelector('.input-name');
-  await page.type('.input-name', 'le bot');
-  await page.click('.button-create');
-  await page.waitForSelector('#item-settings-customwordsonly');
-  const gameId = await gameIdPromise;
-  const gameUrl = `https://skribbl.io/?${gameId}`;
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  await page.evaluate(async () => {
-    document.querySelector("#item-settings-customwordsonly").click();
-  });
-  await page.waitForSelector('#item-settings-customwords');
-  console.log('Game created.');
-  console.log(`Invite URL: ${gameUrl}`);
-  return { gamePage: page, gameUrl };
-}
-
 async function cleanUp() {
+  const browser = getBrowser();
   if (browser) {
     await browser.close();
   }
 }
-
-let browser = null;
-let gamePage = null;
-let gameUrl = null;
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(import.meta.dirname, 'static')));
 
 app.post('/api/add-word', async (req, res) => {
+  const gamePage = getGamePage();
+  console.log('Game page:', gamePage);
   if (!gamePage) {
     console.log('Failed to add word. Game not started.');
     return res.status(500).json({ message: 'Bot has not started game yet.' });
@@ -103,6 +53,7 @@ app.post('/api/add-word', async (req, res) => {
 });
 
 app.get('/api/game-url', async (req, res) => {
+  const gameUrl = getGameUrl();
   if (!gameUrl) {
     return res.status(500).json({ message: 'Game not started. Try again in 10 seconds.' });
   }
@@ -111,6 +62,7 @@ app.get('/api/game-url', async (req, res) => {
 
 app.post('/api/start-game', async (req, res) => {
   console.log('Starting game.')
+  const gamePage = getGamePage();
   if (!gamePage) {
     return res.status(500).json({ message: 'No game loaded, unable to start.' });
   }
@@ -149,13 +101,13 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, async () => {
-  browser = await initBrowser();
+  const browser = await initBrowser();
+  setBrowser(browser);
   const gameData = await createGame(browser);
-  gamePage = gameData?.gamePage;
-  gameUrl = gameData?.gameUrl;
+  setGamePage(gameData?.gamePage);
+  setGameUrl(gameData?.gameUrl);
   console.log('Bot URL: ' + `http://localhost:${PORT}`);
 });
-
 
 process.on('SIGTERM', () => {
   console.info('SIGTERM signal received.');
