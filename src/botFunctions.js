@@ -5,6 +5,7 @@ import { drawImage } from './drawing.js';
 export async function initBrowser() {
   const browser = await puppeteer.launch({
     headless: false,
+    devtools: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   return browser;
@@ -64,9 +65,10 @@ export async function playGame(gamePage) {
   await gamePage.waitForSelector(wordButtonSelector);
   const word = await gamePage.evaluate(async (selector) => {
     const element = document.querySelector(selector);
-    return element.innerText;
+    const word = element.innerText
+    element.click();
+    return word;
   }, wordButtonSelector);
-  console.log({ word })
   await new Promise((res) => { setTimeout(() => { res() }, 200) });
   await gamePage.click(wordButtonSelector);
   await new Promise((res) => { setTimeout(() => { res() }, 500) });

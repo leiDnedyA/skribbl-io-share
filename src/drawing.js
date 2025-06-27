@@ -1,14 +1,57 @@
+import { TimeoutError } from "puppeteer";
 
 export async function drawImage(gamePage, imgSrc) {
-  await gamePage.waitForSelector('.containerToolbar');
+  await gamePage.waitForSelector('#game-toolbar');
   await gamePage.evaluate((imgSrc) => {
     // Ripped from https://github.com/Dev-Zhao/skribbl.io-autodraw
+    class Color {
+      constructor(r, g, b, a = 255) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+      }
+
+      get JSONString() {
+        return JSON.stringify(this);
+      }
+
+      isEqual(color) {
+        return (this.r == color.r && this.g == color.g && this.b == color.b && this.a == color.a);
+      }
+
+      /*
+          'Get Color Component from RGB String' - https://stackoverflow.com/questions/10970958/get-a-color-component-from-an-rgb-string-in-javascript
+          Example rgbString: 'rgb(255, 0, 6)' - This can be obtained from element.style.backgroundColor
+              rgbString.substring(4, rgb.length - 1): '255, 0, 6'
+              .replace(/ /g, ''): '255,0,6'
+              .split(','): ['255', '0', '6']
+      */
+      static getColorFromRGBString(rgbString) {
+        let rgb = rgbString.substring(4, rgbString.length - 1).replace(/ /g, '').split(',');
+        return new Color(parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]));
+      }
+
+      // The Euclidean distance formula is sqrt(rDiff^2 + gDiff^2 + bDiff^2). However, it does not account for the way humans perceive colour, this formula should do a better job at it
+      // 'Colour Metric' - https://www.compuphase.com/cmetric.htm
+      static distance(color1, color2) {
+        let rMean = (color1.r + color2.r) / 2;
+        let rDiff = color1.r - color2.r;
+        let gDiff = color1.g - color2.g;
+        let bDiff = color1.b - color2.b;
+
+        // The actual distance formula is sqrt( (2 + rMean/256)*rDiff^2 + 4*gDiff^2 + (2 + (255-rMean)/256)*bDiff^2 )
+        // This simplifies to sqrt( ((512+rMean)/256)*rDiff^2 + 4*gDiff^2 + ((767-rMean)/256)*bDiff^2  )
+        // 'Algorithms/Distance approximations' - https://en.wikibooks.org/wiki/Algorithms/Distance_approximations
+        return Math.sqrt(((512 + rMean) / 256) * Math.pow(rDiff, 2) + 4 * Math.pow(gDiff, 2) + ((767 - rMean) / 256) * Math.pow(bDiff, 2));
+      }
+    }
     class Toolbar {
       constructor() {
-        this._toolbarElement = document.querySelector('.containerToolbar');
+        this._toolbarElement = document.querySelector('#game-toolbar');
 
-        let colorElementsContainer = this._toolbarElement.querySelector('.containerColorbox');
-        let colorElements = Array.prototype.slice.call(colorElementsContainer.querySelectorAll('.colorItem'));
+        let colorElementsContainer = this._toolbarElement.querySelector('.colors');
+        let colorElements = Array.prototype.slice.call(colorElementsContainer.querySelectorAll('.color'));
         this._colorElementsLookup = {}; // The lookup will look like this: { '{"r":0-255,"g":0-255,"b":0-255}' : colorElement, ... }
         this._colors = []; // This will look like [ {r: 0-255, g: 0-255, b: 0-255}, ... ] 
         colorElements.forEach((element) => {
@@ -23,38 +66,36 @@ export async function drawImage(gamePage, imgSrc) {
         // This means we only have to calculate the nearest color for a given color once.
         this._nearestColorLookup = {};
 
-        let toolElementsContainer = this._toolbarElement.querySelector('.containerTools');
+        let toolElementsContainer = this._toolbarElement.querySelector('.toolbar-group-tools');
         this._toolElementsLookup = {
           brush: toolElementsContainer.children[0],
-          eraser: toolElementsContainer.children[1],
-          fill: toolElementsContainer.children[2]
+          fill: toolElementsContainer.children[1]
         }
 
-        let brushElementsContainer = this._toolbarElement.querySelector('div.containerBrushSizes');
+        let brushElementsContainer = this._toolbarElement.querySelector('div.sizes > div.container');
         this._brushElementsLookup = {
           0: {
             brushDiameterforDots: 4,
             brushDiameterforLines: 2.7,
-            brushElement: brushElementsContainer.children[0]
+            brushElement: brushElementsContainer.children[1]
           },
           1: {
             brushDiameterforDots: 9,
             brushDiameterforLines: 6,
-            brushElement: brushElementsContainer.children[1]
+            brushElement: brushElementsContainer.children[2]
           },
           2: {
             brushDiameterforDots: 20,
             brushDiameterforLines: 17,
-            brushElement: brushElementsContainer.children[2]
+            brushElement: brushElementsContainer.children[3]
           },
           3: {
             brushDiameterforDots: 40,
             brushDiameterforLines: 37,
-            brushElement: brushElementsContainer.children[3]
+            brushElement: brushElementsContainer.children[4]
           },
         };
 
-        this._clearCanvasButton = document.getElementById('buttonClearCanvas');
       }
 
       get colors() {
@@ -121,7 +162,7 @@ export async function drawImage(gamePage, imgSrc) {
       }
 
       clearCanvas() {
-        this._clearCanvasButton.click();
+        document.querySelector('#game-toolbar > div.toolbar-group-actions > div:nth-child(2)').click();
       }
     };
 
@@ -250,7 +291,8 @@ export async function drawImage(gamePage, imgSrc) {
         // This can be calculated using the formula: 4*y*imageWidth + 4*x
         let i = 4 * y * imageData.width + 4 * x; // r: data[i], g: data[i+1], b: data[i+2], a: data[i+3]
 
-        return new Color(data[i], data[i + 1], data[i + 2], data[i + 3]);
+        const color = new Color(data[i], data[i + 1], data[i + 2], data[i + 3]);
+        return color;
       },
 
       // 'Get average color from area of image' - https://stackoverflow.com/a/44557266
@@ -322,7 +364,7 @@ export async function drawImage(gamePage, imgSrc) {
     }
 
     let createArtist = function(toolbar) {
-      let gameCanvas = document.getElementById('canvasGame');
+      let gameCanvas = document.querySelector('#game-canvas > canvas');
       let gameBackgroundColor = new Color(255, 255, 255, 255) // white;
       let transparentColor = new Color(0, 0, 0, 0);
 
@@ -359,7 +401,7 @@ export async function drawImage(gamePage, imgSrc) {
 
       let generateDots = function(img, brushDiameter) {
         // Scale the image to fit the game canvas
-        let imageData = imageHelper.scaleImage(img, { width: gameCanvas.width, height: gameCanvas.height, scaleMode: 'scaleToFit' });
+        let imageData = imageHelper.scaleImage(img, { width: gameCanvas.width / 10, height: gameCanvas.height / 10, scaleMode: 'scaleToFit' });
 
         // This offset is used to center the image on the canvas
         // 'Scaling an image to fit on canvas' - https://stackoverflow.com/a/23105310
@@ -398,13 +440,17 @@ export async function drawImage(gamePage, imgSrc) {
 
         let brushDiameter = toolbar.getBrushDiameter("Dots", brushNum);
 
+        console.log('generating dots')
         let dots = generateDots(img, brushDiameter);
+        console.log('done generating dots.')
 
         // Sort the array such that the dot with smaller x value is put before dot with larger x value
         // This makes it so that we draw dots from left to right
         dots.sort((dot1, dot2) => {
           return dot1.x - dot2.x;
         });
+
+        console.log({ dots })
 
         dots.forEach((dot) => {
           if (dot.color.isEqual(transparentColor) || dot.color.isEqual(gameBackgroundColor)) {
@@ -449,9 +495,12 @@ export async function drawImage(gamePage, imgSrc) {
           lineColor = toolbar.getNearestAvailableColor(lineColor);
 
           for (let x = 1; x < imageData.width; x++) {
+            console.log('b4');
             currColor = imageHelper.getPixelColor(imageData, x, y);
             currColor = toolbar.getNearestAvailableColor(currColor);
+            console.log('aftr');
 
+            console.log({ currColor, lineColor }, 0)
             if (!currColor.isEqual(lineColor)) {
               if (!lineColor.isEqual(transparentColor) && !lineColor.isEqual(gameBackgroundColor)) {
                 let lineStartX = (startX * brushDiameter) + xOffset;
@@ -490,6 +539,7 @@ export async function drawImage(gamePage, imgSrc) {
             currColor = imageHelper.getPixelColor(imageData, x, y);
             currColor = toolbar.getNearestAvailableColor(currColor);
 
+            console.log({ currColor, lineColor }, '1')
             if (!currColor.isEqual(lineColor)) {
               if (!lineColor.isEqual(transparentColor) && !lineColor.isEqual(gameBackgroundColor)) {
                 let lineStartY = (startY * brushDiameter) + yOffset;
@@ -568,20 +618,22 @@ export async function drawImage(gamePage, imgSrc) {
       let toolbar = new Toolbar();
       let artist = createArtist(toolbar);
 
+      const commandsProcessor = new CommandsProcessor();
+
       imageHelper.loadImage(imgSrc).then((img) => {
-        Promise.all([storage.getData("drawMode"), storage.getData("brushNum")]).then((data) => {
-          drawCommands = artist.draw(img, {
-            drawMode: data[0],
-            brushNum: data[1]
-          });
 
-          commandsProcessor.setCommands(drawCommands);
-
-          commandsProcessor.process(10, () => {
-            return toolbar.isActive;
-          });
+        drawCommands = artist.draw(img, {
+          drawMode: "Dots", brushNum: 0
         });
-      }).catch(() => {
+
+        commandsProcessor.setCommands(drawCommands);
+
+        commandsProcessor.process(10, () => {
+          return toolbar.isActive;
+        });
+
+      }).catch((err) => {
+        console.error(err);
         showInstructionOverlay("Whoops.. Image failed to load.");
 
         setTimeout(() => {
@@ -592,5 +644,5 @@ export async function drawImage(gamePage, imgSrc) {
       });
     }
     _drawImage(imgSrc);
-  }, imgSrc);
+  }, imgSrc, { timeout: 0 });
 }
