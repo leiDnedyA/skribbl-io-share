@@ -6,7 +6,9 @@ export function getCurrWords() {
 }
 
 export function setCurrWords(words) {
-  currWords = words;
+  const lowerCaseWords = words.map(word => word.toLowerCase());
+  const uniqueWords = [...new Set(lowerCaseWords)];
+  currWords = uniqueWords;
 }
 
 export function getGameUrl() {
