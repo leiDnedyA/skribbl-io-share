@@ -47,7 +47,7 @@ async function createGame(browser) {
 
   await page.goto('https://skribbl.io/');
   await page.waitForSelector('.input-name');
-  await page.type('.input-name', 'Totally not a bot');
+  await page.type('.input-name', 'le bot');
   await page.click('.button-create');
   await page.waitForSelector('#item-settings-customwordsonly');
   const gameId = await gameIdPromise;

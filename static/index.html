@@ -88,11 +88,65 @@
       width: 100%;
     }
 
+    .input-section {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .input-number {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      box-shadow: 0 8px 15px rgba(255, 107, 107, 0.4);
+      border: 3px solid white;
+      position: relative;
+      z-index: 1;
+    }
+
+    .input-number::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(45deg, #ff9ff3, #feca57);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.7;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.3;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.7;
+      }
+    }
+
     .button-row {
-      display: grid;
-      grid-template-columns: 60% 40%;
+      display: flex;
       gap: 15px;
       justify-content: center;
+      width: 100%;
     }
 
     .join-link {
@@ -185,8 +239,7 @@
       border: 4px solid #fff;
       position: relative;
       overflow: hidden;
-      flex: 1;
-      min-width: 200px;
+      width: 100%;
     }
 
     button::before,
@@ -218,7 +271,9 @@
     }
 
     #chatgptButton {
-      background: linear-gradient(45deg, #10a37f, #1a7f64, #0d8a6f);
+      padding: 0;
+      width: 30%;
+      background: white;
       background-size: 200% 200%;
       box-shadow: 0 20px 30px rgba(16, 163, 127, 0.5);
     }
@@ -231,6 +286,8 @@
     #startButton {
       background: linear-gradient(45deg, #57f8fe, #700061, #ff6b6b);
       box-shadow: 0 15px 25px rgba(255, 159, 243, 0.4);
+      font-size: 1rem;
+      padding: 18px 35px;
     }
 
     #startButton:hover {
@@ -243,9 +300,22 @@
       transform: translateY(0) scale(0.95);
     }
 
+    .section-divider {
+      border: none;
+      height: 3px;
+      background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #ff9ff3);
+      border-radius: 2px;
+      margin: 30px 0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
     @media (max-width: 480px) {
       .container {
         padding: 30px 20px;
+      }
+
+      .container::after {
+        display: none;
       }
 
       h1 {
@@ -258,6 +328,11 @@
         padding: 15px 28px;
         font-size: 1rem;
       }
+
+      body::before,
+      body::after {
+        font-size: 1.2rem;
+      }
     }
   </style>
 </head>
@@ -266,14 +341,27 @@
   <div class="container">
     <h1>🎨 Skribbl Bot 🤖</h1>
     <form id="wordForm">
-      <a href="%game_url%" class="join-link" target="_blank">🎮 Join the Game! 🎮</a>
-      <input type="text" id="word"
-        placeholder="🦄 sammy, 🐱 olivia rodriguez, 🌮 crystal, 🎪 ayden, 🚀 rocket, 💩 poop...">
-      <div class="button-row">
-        <input type="submit" id="addWord" value="✨ Add Word(s) ✨">
-        <button id="chatgptButton">ChatGPT</button>
+      <div class="input-section">
+        <input type="text" id="word"
+          placeholder="🦄 sammy, 🐱 olivia rodriguez, 🌮 crystal, 🎪 ayden, 🚀 rocket, 💩 poop...">
+        <div class="button-row">
+          <input type="submit" id="addWord" value="✨ Add Word(s) ✨">
+          <button id="chatgptButton"><img src="https://chatgpt.com/favicon.ico" alt="ChatGPT"
+              style="width: 50px; height: 50px;"></button>
+        </div>
       </div>
-      <button id="startButton">🎯 Start the Game! 🎯</button>
+      
+      <hr class="section-divider">
+      
+      <div class="input-section">
+        <a href="%game_url%" class="join-link" target="_blank">🎮 Join the Game! 🎮</a>
+      </div>
+      
+      <hr class="section-divider">
+      
+      <div class="input-section">
+        <button id="startButton">🎯 Start the Game! 🎯</button>
+      </div>
     </form>
   </div>
 
@@ -363,7 +451,7 @@
         } else if (count <= 0) {
           alert('Enter a number greater than 0');
         } else if (count > 10) {
-          alert('Too many words.');
+          alert('Enter a number less than 10');
         } else {
           break;
         }
