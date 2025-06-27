@@ -1,5 +1,6 @@
 let currWords = [];
 let gameUrl = null;
+let gameStarted = false;
 
 export function getCurrWords() {
   return currWords;
@@ -17,4 +18,12 @@ export function getGameUrl() {
 
 export function setGameUrl(url) {
   gameUrl = url;
+}
+
+export function getGameStarted() {
+  return gameStarted;
+}
+
+export function setGameStarted(started) {
+  gameStarted = started;
 }

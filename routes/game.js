@@ -1,6 +1,7 @@
 import express from 'express';
 import { getCurrWords, setCurrWords, getGameUrl } from '../src/gameState.js';
 import { getGamePage } from '../src/browserState.js';
+import { startGame } from '../src/botFunctions.js';
 
 const router = express.Router();
 
@@ -55,19 +56,10 @@ router.post('/start-game', async (req, res) => {
         return res.status(400).json({ message: `Not enough words to start game. ${10 - currWords.length} more words are needed.` });
     }
 
-    if (!currWords.includes('robot')) {
-        setCurrWords([...currWords, 'robot']);
-        await gamePage.type('#item-settings-customwords', `, robot`);
-    }
+    await startGame(gamePage);
 
-    await gamePage.click('#button-start-game');
-    await new Promise((res) => { setTimeout(() => { res() }, 200) });
-
-    await gamePage.close();
     console.log('Game started.')
     res.status(200).json({ message: "Game started." });
-    getBrowser().close();
-    process.exit(0);
 });
 
 export default router;

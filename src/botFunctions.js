@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import { setGameStarted } from './gameState.js';
 
 export async function initBrowser() {
   const browser = await puppeteer.launch({
@@ -46,4 +47,11 @@ export async function createGame(browser) {
   console.log('Game created.');
   console.log(`Invite URL: ${gameUrl}`);
   return { gamePage: page, gameUrl };
+}
+
+export async function startGame(gamePage) {
+  await gamePage.waitForSelector('#button-start-game');
+  await gamePage.click('#button-start-game');
+  await new Promise((res) => { setTimeout(() => { res() }, 200) });
+  setGameStarted(true);
 }
